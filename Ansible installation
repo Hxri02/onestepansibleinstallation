@@ -1,0 +1,43 @@
+#!/bin/bash
+
+# Update system packages
+sudo apt-get update && sudo apt-get upgrade -y
+
+# Install required dependencies
+sudo apt-get install -y openjdk-17-jdk wget gnupg
+
+# Add Jenkins repository and key
+sudo wget -O /usr/share/keyrings/jenkins-keyring.asc \
+  https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key
+echo "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc]" \
+  https://pkg.jenkins.io/debian-stable binary/ | sudo tee \
+  /etc/apt/sources.list.d/jenkins.list > /dev/null
+
+# Update package list again
+sudo apt-get update
+
+# Install Jenkins
+sudo apt-get install -y jenkins
+
+# Start Jenkins service
+sudo systemctl start jenkins
+
+# Enable Jenkins to start on boot
+sudo systemctl enable jenkins
+
+# Check Jenkins status
+sudo systemctl status jenkins --no-pager
+
+# Get initial admin password
+echo "Initial Jenkins admin password:"
+sudo cat /var/lib/jenkins/secrets/initialAdminPassword
+
+# Open firewall (if ufw is active)
+if sudo ufw status | grep -q "Status: active"; then
+    sudo ufw allow 8080
+    sudo ufw status
+fi
+
+# Display completion message
+echo -e "\nJenkins installation complete!"
+echo "Access Jenkins at: http://$(hostname -I | awk '{print $1}'):8080"
